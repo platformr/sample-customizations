@@ -1,0 +1,3 @@
+# Python dependencies for scripts in this directory.
+# Installed into api_helpers/python/.venv by lib/bash/common.sh:run_python.
+# Leave empty if you have no python helpers.

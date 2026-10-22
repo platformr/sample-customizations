@@ -1,0 +1,15 @@
+# EKS Auto Mode ships the EBS CSI driver but no StorageClass. This one makes
+# encrypted gp3 the cluster default so PersistentVolumeClaims just work.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.storageClass.name }}
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "{{ .Values.storageClass.default }}"
+provisioner: ebs.csi.eks.amazonaws.com
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+parameters:
+  type: {{ .Values.storageClass.type }}
+  encrypted: "{{ .Values.storageClass.encrypted }}"

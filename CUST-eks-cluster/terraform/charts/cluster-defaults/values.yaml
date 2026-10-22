@@ -1,0 +1,11 @@
+# Values are set from Terraform (see main.tf). Defaults here match variables.tf.
+storageClass:
+  name: gp3
+  default: true
+  type: gp3
+  encrypted: true
+
+ingressClass:
+  name: alb
+  default: true
+  scheme: internet-facing

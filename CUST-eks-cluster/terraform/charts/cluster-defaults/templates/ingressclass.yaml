@@ -1,0 +1,21 @@
+# EKS Auto Mode includes an ALB controller but no IngressClass. These two
+# objects make `kind: Ingress` create an ALB without any annotations.
+apiVersion: eks.amazonaws.com/v1
+kind: IngressClassParams
+metadata:
+  name: {{ .Values.ingressClass.name }}
+spec:
+  scheme: {{ .Values.ingressClass.scheme }}
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: {{ .Values.ingressClass.name }}
+  annotations:
+    ingressclass.kubernetes.io/is-default-class: "{{ .Values.ingressClass.default }}"
+spec:
+  controller: eks.amazonaws.com/alb
+  parameters:
+    apiGroup: eks.amazonaws.com
+    kind: IngressClassParams
+    name: {{ .Values.ingressClass.name }}

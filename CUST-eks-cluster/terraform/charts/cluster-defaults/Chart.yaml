@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cluster-defaults
+description: Baseline Kubernetes objects for an EKS Auto Mode cluster (default StorageClass, IngressClass).
+type: application
+version: 0.1.0
+appVersion: "1.0"

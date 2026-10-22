@@ -1,0 +1,3 @@
+cluster-defaults installed:
+  StorageClass {{ .Values.storageClass.name }} (default: {{ .Values.storageClass.default }})
+  IngressClass {{ .Values.ingressClass.name }} (default: {{ .Values.ingressClass.default }}, scheme: {{ .Values.ingressClass.scheme }})
