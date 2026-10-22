@@ -101,10 +101,11 @@ the README, and validate:
 scripts/validate-customization.sh CUST-my-feature
 ```
 
-The validator runs `terraform fmt -check`, `terraform init -backend=false`,
-`terraform validate`, `bash -n`/shellcheck, `py_compile`, layout checks and
-anti-pattern greps (backend blocks, remote state, cross-customization
-references, hard-coded account IDs).
+The validator runs `fmt -check`, `init -backend=false` and `validate` with
+Terraform or OpenTofu (auto-detected, or `TF_CLI=tofu`), plus
+`bash -n`/shellcheck, `py_compile`, layout checks and anti-pattern greps
+(backend blocks, remote state, cross-customization references, hard-coded
+account IDs).
 
 ### With an AI coding agent (Claude Code, Codex, Kiro, Cursor, Copilot, Gemini CLI)
 
@@ -157,7 +158,11 @@ See [`AGENTS.md`](AGENTS.md) for the full list.
 
 ## Local prerequisites
 
-- Terraform >= 1.5 (the examples were validated with 1.5.7 and AWS provider 6.69)
+- Terraform >= 1.5 **or OpenTofu >= 1.6**. The examples were validated with
+  Terraform 1.5.7 and AWS provider 6.69; the HCL uses nothing
+  Terraform-specific, providers and modules resolve on the OpenTofu registry,
+  and lock files are git-ignored. The validator auto-detects `terraform` or
+  `tofu`; override with `TF_CLI=tofu`.
 - AWS CLI v2 (recent; `aws devops-agent` needs a 2026 build)
 - python3 (for python helpers)
 - Optional: `shellcheck`, `tflint`

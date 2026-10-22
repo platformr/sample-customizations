@@ -15,9 +15,11 @@ scripts/validate-customization.sh            # everything
 scripts/validate-customization.sh CUST-foo   # one customization
 ```
 
-Needs: `terraform` (>= 1.5), `python3`, network access for `terraform init`
-(providers are cached in `TF_PLUGIN_CACHE_DIR`). Optional: `shellcheck`,
-`tflint`. Set `SKIP_TF_INIT=1` to skip init when offline and already cached.
+Needs: `terraform` (>= 1.5) **or** `tofu` (OpenTofu >= 1.6), `python3`, and
+network access for `init` (providers are cached in `TF_PLUGIN_CACHE_DIR`).
+The script uses `terraform` if installed, otherwise `tofu`; force one with
+`TF_CLI=tofu` or `TF_CLI=terraform`. Optional: `shellcheck`, `tflint`. Set
+`SKIP_TF_INIT=1` to skip init when offline and already cached.
 
 ## What it checks and how to fix each failure
 
@@ -29,9 +31,9 @@ Needs: `terraform` (>= 1.5), `python3`, network access for `terraform init`
 | `CUST-CHANGE-ME` present | Replace with the real directory name. |
 | `bash -n` / shellcheck | Fix the reported line. Keep `set -euo pipefail`. |
 | `py_compile` | Fix the Python syntax error. |
-| `terraform fmt` | `terraform -chdir=CUST-foo/terraform fmt -recursive` |
-| `terraform init` | Usually a bad `required_providers` block or no network. |
-| `terraform validate` | Read the error; typically a wrong attribute name. Check the provider docs for the resource. |
+| `fmt` | `terraform -chdir=CUST-foo/terraform fmt -recursive` (or `tofu`) |
+| `init` | Usually a bad `required_providers` block or no network. |
+| `validate` | Read the error; typically a wrong attribute name. Check the provider docs for the resource. |
 | backend block | Delete it. Platformr injects the backend. |
 | `terraform_remote_state` | Remove. Customizations cannot depend on each other. |
 | cross-CUST reference | Move shared code to `lib/` and reference that instead. |
@@ -48,6 +50,6 @@ After the script passes, read the helper scripts once more and confirm:
 - `destroy` either reverts the feature or the README says it does not.
 - The README's "Permissions" section matches the API calls actually made.
 
-If `terraform plan` against a real sandbox account is possible, run it from
-the `terraform/` directory with `-backend=false` init and a local state to
-check for API-level errors the validator cannot see.
+If a `plan` against a real sandbox account is possible, run it from the
+`terraform/` directory (`terraform` or `tofu`) with `-backend=false` init and
+a local state to check for API-level errors the validator cannot see.

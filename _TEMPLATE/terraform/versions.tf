@@ -1,4 +1,6 @@
 terraform {
+  # Terraform >= 1.5 or OpenTofu >= 1.6 (OpenTofu satisfies this constraint
+  # with its own version number; no Terraform-only features are used).
   required_version = ">= 1.5.0"
 
   required_providers {

@@ -108,6 +108,18 @@ skills/                    Agent skills (SKILL.md) for any AI coding agent; .cla
 
 ## Tooling expected on the build image
 
-Terraform >= 1.5, AWS CLI v2 (recent enough for the services used), bash,
-python3 (for python helpers). The validator additionally benefits from
-`shellcheck` and `tflint` when present.
+Terraform >= 1.5 **or OpenTofu >= 1.6**, AWS CLI v2 (recent enough for the
+services used), bash, python3 (for python helpers). The validator
+additionally benefits from `shellcheck` and `tflint` when present.
+
+### Terraform or OpenTofu
+
+Customizations are plain HCL with no Terraform-only features, so they run
+unchanged under OpenTofu (`tofu`). The provider and module addresses
+(`hashicorp/aws`, `terraform-aws-modules/...`) resolve on both registries,
+and `.terraform.lock.hcl` is git-ignored so each runner generates its own.
+`scripts/validate-customization.sh` picks `terraform` if installed, else
+`tofu`; force one with `TF_CLI=tofu` or `TF_CLI=terraform`. Which binary the
+Platformr build uses for apply/destroy is a build setting, not something a
+customization controls. Where this file says `terraform <command>`, read
+`tofu <command>` if that is your CLI.

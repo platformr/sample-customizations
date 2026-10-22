@@ -7,14 +7,16 @@
 #   scripts/validate-customization.sh CUST-foo [...]  # specific directories
 #
 # Environment:
-#   SKIP_TF_INIT=1   skip `terraform init` (use when providers are already cached
-#                    and you are offline). `terraform validate` still runs.
+#   TF_CLI=<binary>  Terraform-compatible CLI to use: "terraform" or "tofu"
+#                    (OpenTofu). Default: terraform if installed, else tofu.
+#   SKIP_TF_INIT=1   skip `init` (use when providers are already cached and
+#                    you are offline). `validate` still runs.
 #
 # Checks performed per customization:
 #   1. Directory layout and naming convention
 #   2. Shell scripts: bash -n, shellcheck (if installed)
 #   3. Python scripts: py_compile
-#   4. terraform fmt -check, terraform init -backend=false, terraform validate
+#   4. fmt -check, init -backend=false, validate (terraform or tofu, see TF_CLI)
 #   5. tflint (if installed; warnings only)
 #   6. Anti-pattern grep: backend blocks, remote state, cross-CUST references,
 #      hard-coded account IDs (warning)
@@ -37,6 +39,15 @@ yellow() { printf '\033[33m%s\033[0m\n' "$*"; }
 fail() { red   "  [FAIL] $*"; FAILURES=$((FAILURES + 1)); }
 warn() { yellow "  [WARN] $*"; WARNINGS=$((WARNINGS + 1)); }
 ok()   { green "  [ OK ] $*"; }
+
+# Terraform-compatible CLI: terraform (HashiCorp) or tofu (OpenTofu). Both read
+# the TF_* environment variables and share the same subcommands.
+if [[ -z "${TF_CLI:-}" ]]; then
+  if command -v terraform >/dev/null 2>&1; then TF_CLI=terraform
+  elif command -v tofu >/dev/null 2>&1; then TF_CLI=tofu
+  else TF_CLI=terraform; fi
+fi
+export TF_CLI
 
 # Share provider downloads between customizations.
 if [[ -z "${TF_PLUGIN_CACHE_DIR:-}" ]]; then
@@ -94,31 +105,31 @@ check_python() {
 
 check_terraform() {
   local dir="$1" tfdir="$1/terraform"
-  if ! command -v terraform >/dev/null 2>&1; then
-    fail "terraform not installed"
+  if ! command -v "$TF_CLI" >/dev/null 2>&1; then
+    fail "$TF_CLI not installed (set TF_CLI=terraform or TF_CLI=tofu)"
     return
   fi
 
-  if terraform -chdir="$tfdir" fmt -check -recursive -diff >/dev/null 2>&1; then
-    ok "terraform fmt"
+  if "$TF_CLI" -chdir="$tfdir" fmt -check -recursive -diff >/dev/null 2>&1; then
+    ok "$TF_CLI fmt"
   else
-    fail "terraform fmt (run: terraform -chdir=$tfdir fmt -recursive)"
-    terraform -chdir="$tfdir" fmt -check -recursive -diff 2>&1 | sed 's/^/         /'
+    fail "$TF_CLI fmt (run: $TF_CLI -chdir=$tfdir fmt -recursive)"
+    "$TF_CLI" -chdir="$tfdir" fmt -check -recursive -diff 2>&1 | sed 's/^/         /'
   fi
 
   if [[ "${SKIP_TF_INIT:-0}" != "1" ]]; then
-    if terraform -chdir="$tfdir" init -backend=false -input=false -no-color >/dev/null 2>"$tfdir/.init.err"; then
-      ok "terraform init"
+    if "$TF_CLI" -chdir="$tfdir" init -backend=false -input=false -no-color >/dev/null 2>"$tfdir/.init.err"; then
+      ok "$TF_CLI init"
     else
-      fail "terraform init"; sed 's/^/         /' "$tfdir/.init.err"
+      fail "$TF_CLI init"; sed 's/^/         /' "$tfdir/.init.err"
     fi
     rm -f "$tfdir/.init.err"
   fi
 
-  if terraform -chdir="$tfdir" validate -no-color >"$tfdir/.validate.out" 2>&1; then
-    ok "terraform validate"
+  if "$TF_CLI" -chdir="$tfdir" validate -no-color >"$tfdir/.validate.out" 2>&1; then
+    ok "$TF_CLI validate"
   else
-    fail "terraform validate"; sed 's/^/         /' "$tfdir/.validate.out"
+    fail "$TF_CLI validate"; sed 's/^/         /' "$tfdir/.validate.out"
   fi
   rm -f "$tfdir/.validate.out"
 
@@ -181,6 +192,8 @@ check_skills() {
     else fail "$link missing (run scripts/link-skills.sh)"; fi
   done
 }
+
+printf 'Using %s (%s)\n' "$TF_CLI" "$("$TF_CLI" version 2>/dev/null | head -1 || echo 'not found')"
 
 TARGETS=("$@")
 if [[ ${#TARGETS[@]} -eq 0 ]]; then

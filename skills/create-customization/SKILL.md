@@ -36,8 +36,8 @@ customizations; everything must be safe to run repeatedly.**
    - Which API calls enable it? (console steps map to APIs)
    - Does the Terraform AWS provider (`>= 6.0`) have a resource for each call?
      Check `https://registry.terraform.io/providers/hashicorp/aws/latest/docs`.
-     If unsure, run `terraform providers schema -json` in an initialised
-     directory and grep for the resource name.
+     If unsure, run `terraform providers schema -json` (or `tofu providers
+     schema -json`) in an initialised directory and grep for the resource name.
    - Which parts are account-level (belong here) vs. per-workload (do not)?
    - What does "destroy" mean for this feature, and can Terraform revert it?
    - Which IAM actions does the deployment role need?
@@ -79,7 +79,8 @@ customizations; everything must be safe to run repeatedly.**
 
 8. **Validate.** Run the `validate-customization` skill
    (`scripts/validate-customization.sh CUST-<suffix>`) and fix everything it
-   reports. `terraform fmt` and `terraform validate` must pass.
+   reports. `fmt` and `validate` must pass (Terraform or OpenTofu; the script
+   auto-detects, or set `TF_CLI`).
 
 9. **Add the customization to the table in the root `README.md`.**
 
